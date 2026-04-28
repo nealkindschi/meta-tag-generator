@@ -38,17 +38,30 @@ export async function onRequestPost(context: {
       return JSON.stringify(result);
     };
 
-    const result: GenerateResult = await generate(input, callAI, serpData);
+    let lastError: Error | null = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const result: GenerateResult = await generate(input, callAI, serpData);
 
-    return new Response(JSON.stringify(result), {
-      status: 200,
+        return new Response(JSON.stringify(result), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      } catch (err) {
+        lastError = err as Error;
+      }
+    }
+
+    const message = lastError?.message || "Unknown error";
+    const status = message.includes("parse") || message.includes("extract") ? 422 : 500;
+    return new Response(JSON.stringify({ error: message }), {
+      status,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    const status = message.includes("parse") || message.includes("extract") ? 422 : 500;
     return new Response(JSON.stringify({ error: message }), {
-      status,
+      status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

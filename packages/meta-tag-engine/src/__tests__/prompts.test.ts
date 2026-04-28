@@ -31,7 +31,7 @@ describe("buildGeneratePrompt", () => {
     const prompt = buildGeneratePrompt(parsed, null, [], { position: "none", label: "" });
     expect(prompt).toContain("50-65");
     expect(prompt).toContain("140-155");
-    expect(prompt).toContain("no exceptions");
+    expect(prompt).toContain("CHARACTER REQUIREMENTS");
   });
 
   it("includes keywords when provided", () => {

@@ -41,17 +41,19 @@ Use these in natural variation across titles and descriptions. Never repeat the 
 
   const titleFormatRule = buildTitleFormatRule(titleFormat);
 
-  const system = `You are an expert SEO meta tag writer for enterprise content. Generate ${versionCount} distinct versions of page titles and meta descriptions.
+  const system = `You are an expert SEO meta tag writer. Generate ${versionCount} distinct page title and meta description pairs.
 
-CRITICAL RULES - These are hard requirements, not suggestions:
-1. Page title: ${TITLE_MIN}-${TITLE_MAX} characters (at least ${TITLE_MIN}, no more than ${TITLE_MAX}, no exceptions)
-2. Meta description: ${DESCRIPTION_MIN}-${DESCRIPTION_MAX} characters (at least ${DESCRIPTION_MIN}, no more than ${DESCRIPTION_MAX}, no exceptions)
-3. Description MUST contain a clear call to action (e.g., download, learn, discover, get started, sign up, read)
-4. Front-load primary keywords and their natural variations in titles and descriptions
-5. Use keyword variations across versions - never repeat identical keyword phrases
-6. Each version should take a distinct approach (benefit-driven, question-based, action-oriented, authority)
-7. ${titleFormatRule}
-8. Write for humans first, search engines second — conversational tone, no keyword stuffing
+CHARACTER REQUIREMENTS:
+- Page title: ${TITLE_MIN}-${TITLE_MAX} characters. Write full, descriptive titles — never short or truncated.
+- Meta description: ${DESCRIPTION_MIN}-${DESCRIPTION_MAX} characters. Write complete, benefit-rich descriptions that fill the space.
+- Meta description must include a call to action (download, discover, learn, get started, sign up, etc.)
+
+OTHER RULES:
+- Front-load primary keywords and their variations in the page title
+- Use different keyword variations across versions — never repeat the exact same keyword phrase
+- ${versionCount} distinct approaches: benefit-driven, how-to, authority, question-based
+- ${titleFormatRule}
+- Conversational tone, no keyword stuffing
 
 ${keywordText}
 
@@ -62,11 +64,8 @@ PAGE CONTEXT:
 - Desired Action: ${parsed.action}
 
 ${serpContext}
-
-Return ONLY a JSON array. No markdown, no explanation, just the array:
-[{"title": "...", "description": "..."}, {"title": "...", "description": "..."}]
-
-Count characters carefully. Any title over ${TITLE_MAX} chars or description over ${DESCRIPTION_MAX} chars = rejection. Output:`;
+Output ONLY a JSON array with no other text:
+[{"title":"...","description":"..."}]`;
 
   return system;
 }
@@ -111,21 +110,21 @@ export function buildRetryPrompt(
   const failureItems = failedVersions
     .map(
       (v, i) =>
-        `Version ${i + 1}: "${v.title}" / "${v.description}" — Issues: ${v.failures.join(", ")}`
+        `Version ${i + 1}: "${v.title}" (${v.title.length} chars) / "${v.description}" (${v.description.length} chars) — Issues: ${v.failures.join(", ")}`
     )
     .join("\n");
 
-  return `The following meta tag versions failed validation:
+  return `These versions failed validation. Regenerate them, fixing ONLY the listed issues. Keep the same distinct approaches.
 
 ${failureItems}
 
-Please regenerate these versions fixing ONLY the issues listed above. Keep the same distinct approaches but ensure:
-- Page title: ${TITLE_MIN}-${TITLE_MAX} characters
-- Meta description: ${DESCRIPTION_MIN}-${DESCRIPTION_MAX} characters
-- Meta description MUST contain a call to action
-- Keywords varied across versions: ${keywords.join(", ")}
+Requirements:
+- Page title: ${TITLE_MIN}-${TITLE_MAX} chars
+- Meta description: ${DESCRIPTION_MIN}-${DESCRIPTION_MAX} chars
+- Meta description must have a call to action
+- Keywords: ${keywords.join(", ")}
 
-Context: ${parsed.audience} | ${parsed.topic} | ${parsed.purpose} | ${parsed.action}
+Page: ${parsed.audience} | ${parsed.topic} | ${parsed.purpose} | ${parsed.action}
 
-Return ONLY valid JSON array with the corrected versions.`;
+Output only a JSON array: [{"title":"...","description":"..."}]`;
 }
