@@ -4,11 +4,11 @@ export function ErrorState(message: string, lastInput?: UserInput): string {
   return `
     <div class="error-state" role="alert">
       <div class="error-icon" aria-hidden="true">!</div>
-      <h3>Generation Failed</h3>
+      <h3>Generation failed</h3>
       <p>${escapeHtml(message)}</p>
       <div class="error-actions">
-        <button id="retry-btn" class="generate-btn">Try Again</button>
-        <button id="back-btn" class="secondary-btn">Start Over</button>
+        <button id="retry-btn" class="generate-btn">Try again</button>
+        <button id="back-btn" class="secondary-btn">Start over</button>
       </div>
     </div>
   `;

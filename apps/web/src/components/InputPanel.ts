@@ -14,7 +14,7 @@ export function InputPanel(): string {
       </div>
 
       <div class="form-group">
-        <label for="keywords-input">Target Keywords (optional)</label>
+        <label for="keywords-input">Target keywords (optional)</label>
         <input
           type="text"
           id="keywords-input"
@@ -26,7 +26,7 @@ export function InputPanel(): string {
 
       <div class="form-row">
         <div class="form-group form-row-item">
-          <label for="format-position">Title Format</label>
+          <label for="format-position">Title format</label>
           <select id="format-position" class="select-input">
             <option value="none">No label</option>
             <option value="prefix">Prefix</option>
@@ -34,7 +34,7 @@ export function InputPanel(): string {
           </select>
         </div>
         <div class="form-group form-row-item">
-          <label for="format-label">Brand / Label</label>
+          <label for="format-label">Brand / label</label>
           <input
             type="text"
             id="format-label"
@@ -48,11 +48,11 @@ export function InputPanel(): string {
         <label class="toggle-label">
           <input type="checkbox" id="serp-toggle" class="toggle-input" />
           <span class="toggle-switch"></span>
-          Research SERP first (searches top-ranking pages for patterns)
+          <span class="toggle-text">Research SERP first (searches top-ranking pages for patterns)</span>
         </label>
       </div>
 
-      <button id="generate-btn" class="generate-btn">Generate Meta Tags</button>
+      <button id="generate-btn" class="generate-btn">Generate meta tags</button>
     </div>
   `;
 }

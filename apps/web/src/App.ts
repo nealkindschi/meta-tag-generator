@@ -20,7 +20,7 @@ export function App(): string {
   return `
     <div class="app-container">
       <header class="app-header">
-        <h1>Meta Tag Generator</h1>
+        <h1>Meta tag generator</h1>
         <p class="subtitle">Describe your page and get optimized title & description pairs</p>
       </header>
       <main id="main-content" aria-live="polite" aria-atomic="true">
@@ -71,7 +71,7 @@ export function initApp(): void {
       navigator.clipboard.writeText(`${title}\n${desc}`).then(() => {
         const btn = target.closest(".copy-all-btn") as HTMLElement;
         btn.textContent = "Copied!";
-        setTimeout(() => { btn.textContent = "Copy All"; }, 2000);
+        setTimeout(() => { btn.textContent = "Copy all"; }, 2000);
       });
     }
   });
