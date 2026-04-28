@@ -64,4 +64,12 @@ The engine enforces these limits. Do not override them:
 
 ## Integration
 
-The same engine code powers both this skill and the web app at `/apps/web/`. Changes to `packages/meta-tag-engine/` affect both interfaces. Keep the engine as the single source of truth.
+This skill is part of the `seo-tools-platform` monorepo. The same engine code powers both this skill and the web app at `apps/web/`. When invoking the script from within the project:
+
+```bash
+npx tsx skills/meta-tag-generator/scripts/generate.ts
+```
+
+Changes to `packages/meta-tag-engine/` affect both interfaces. Keep the engine as the single source of truth.
+
+Deployed web app: https://seo-tools-platform.pages.dev
