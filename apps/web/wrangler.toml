@@ -1,0 +1,15 @@
+name = "seo-tools-platform"
+compatibility_date = "2026-04-27"
+
+[[kv_namespaces]]
+binding = "SEO_TOOLS_KV"
+id = "placeholder-id"
+
+[browser]
+binding = "BROWSER"
+
+[ai]
+binding = "AI"
+
+[site]
+bucket = "./dist"

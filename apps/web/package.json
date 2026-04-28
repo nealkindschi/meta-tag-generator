@@ -1,0 +1,21 @@
+{
+  "name": "@seotools/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler pages dev -- npm run start",
+    "start": "vite",
+    "build": "vite build",
+    "deploy": "wrangler pages deploy dist"
+  },
+  "dependencies": {
+    "@seotools/meta-tag-engine": "*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250425.0",
+    "typescript": "^5.8.0",
+    "vite": "^6.3.0",
+    "wrangler": "^4.14.0"
+  }
+}
