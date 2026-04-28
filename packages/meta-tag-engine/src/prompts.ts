@@ -1,0 +1,130 @@
+import type { ParsedInput, SerpResult } from "./types";
+import {
+  TITLE_MAX,
+  TITLE_RECOMMENDED_MIN,
+  TITLE_RECOMMENDED_MAX,
+  DESCRIPTION_MAX,
+  DESCRIPTION_RECOMMENDED_MIN,
+  DESCRIPTION_RECOMMENDED_MAX,
+} from "./rules";
+
+export function buildParsePrompt(rawInput: string): string {
+  return `Extract structured information from this user's page description. Return JSON with these fields:
+- audience: Who the content is written for
+- topic: What the content covers (be specific, 3-5 words)
+- purpose: Why this page exists (educate, convert, inform, etc.)
+- action: What the user wants visitors to do
+- primaryTopic: The core topic for caching purposes (2-4 words, lowercase)
+
+User input:
+"${rawInput}"
+
+Return ONLY valid JSON. No additional text.`;
+}
+
+export function buildGeneratePrompt(
+  parsed: ParsedInput,
+  serpData: SerpResult[] | null,
+  keywords: string[],
+  titleFormat: { position: string; label: string },
+  versionCount: number = 4
+): string {
+  const serpContext = serpData
+    ? buildSerpContext(serpData)
+    : "";
+  const keywordText =
+    keywords.length > 0
+      ? `Required keywords to incorporate: ${keywords.join(", ")}
+Use these in natural variation across titles and descriptions. Never repeat the same keyword phrase verbatim across versions.`
+      : "";
+
+  const titleFormatRule = buildTitleFormatRule(titleFormat);
+
+  const system = `You are an expert SEO meta tag writer for enterprise content. Generate ${versionCount} distinct versions of page titles and meta descriptions.
+
+CRITICAL RULES - These are hard requirements, not suggestions:
+1. Title: ${TITLE_RECOMMENDED_MIN}-${TITLE_RECOMMENDED_MAX} characters (MAXIMUM ${TITLE_MAX}, no exceptions)
+2. Description: ${DESCRIPTION_RECOMMENDED_MIN}-${DESCRIPTION_RECOMMENDED_MAX} characters (MAXIMUM ${DESCRIPTION_MAX}, no exceptions)
+3. Description MUST contain a clear call to action (e.g., download, learn, discover, get started, sign up, read)
+4. Front-load primary keywords and their natural variations in titles and descriptions
+5. Use keyword variations across versions - never repeat identical keyword phrases
+6. Each version should take a distinct approach (benefit-driven, question-based, action-oriented, authority)
+7. ${titleFormatRule}
+8. Write for humans first, search engines second — conversational tone, no keyword stuffing
+
+${keywordText}
+
+PAGE CONTEXT:
+- Audience: ${parsed.audience}
+- Topic: ${parsed.topic}
+- Purpose: ${parsed.purpose}
+- Desired Action: ${parsed.action}
+
+${serpContext}
+
+Return ONLY valid JSON array. Format:
+[{"title": "...", "description": "..."}, {"title": "...", "description": "..."}]
+
+Count the characters in your output before returning. If any title exceeds ${TITLE_MAX} chars or any description exceeds ${DESCRIPTION_MAX} chars, shorten it before output.`;
+
+  return system;
+}
+
+function buildTitleFormatRule(format: {
+  position: string;
+  label: string;
+}): string {
+  if (format.position === "none" || !format.label) {
+    return "No brand prefix or suffix on titles.";
+  }
+  if (format.position === "prefix") {
+    return `Prefix all titles with "${format.label} | " (include the pipe and space).`;
+  }
+  return `Suffix all titles with " | ${format.label}" (include the pipe and space).`;
+}
+
+function buildSerpContext(results: SerpResult[]): string {
+  const topResults = results.slice(0, 8);
+  const patterns = topResults
+    .map(
+      (r, i) =>
+        `${i + 1}. Title: "${r.title}"\n   Description: "${r.description}"`
+    )
+    .join("\n");
+
+  return `SERP RESEARCH (patterns from top-ranking pages for this topic):
+${patterns}
+
+Use these patterns to inform structure and tone, but create original content. Note which title and description styles appear to rank well.`;
+}
+
+export function buildSimulatedSerpPrompt(topic: string): string {
+  return `Based on your knowledge of search results for "${topic}", describe what patterns the top 8 ranking pages likely use for their page titles and meta descriptions. Consider: common title structures, typical description formats, calls to action commonly used, keyword placement patterns, and description length tendencies. Be specific and data-like, as if you scraped real results.`;
+}
+
+export function buildRetryPrompt(
+  failedVersions: { title: string; description: string; failures: string[] }[],
+  parsed: ParsedInput,
+  keywords: string[]
+): string {
+  const failureItems = failedVersions
+    .map(
+      (v, i) =>
+        `Version ${i + 1}: "${v.title}" / "${v.description}" — Issues: ${v.failures.join(", ")}`
+    )
+    .join("\n");
+
+  return `The following meta tag versions failed validation:
+
+${failureItems}
+
+Please regenerate these versions fixing ONLY the issues listed above. Keep the same distinct approaches but ensure:
+- Title: ${TITLE_RECOMMENDED_MIN}-${TITLE_RECOMMENDED_MAX} chars (≤${TITLE_MAX})
+- Description: ${DESCRIPTION_RECOMMENDED_MIN}-${DESCRIPTION_RECOMMENDED_MAX} chars (≤${DESCRIPTION_MAX})
+- Description MUST contain a call to action
+- Keywords varied across versions: ${keywords.join(", ")}
+
+Context: ${parsed.audience} | ${parsed.topic} | ${parsed.purpose} | ${parsed.action}
+
+Return ONLY valid JSON array with the corrected versions.`;
+}
