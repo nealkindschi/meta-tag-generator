@@ -20,12 +20,22 @@ export async function onRequestPost(context: {
       ? await getSerpData(input, context.env)
       : null;
 
-    const callAI = async (prompt: string, options?: { response_format?: { type: string } }): Promise<string> => {
-      const result = await context.env.AI.run("@cf/meta/llama-3.2-1b-instruct", {
+    const callAI = async (prompt: string): Promise<string> => {
+      const result = await context.env.AI.run("@cf/meta/llama-3.1-8b-instruct-fast", {
         messages: [{ role: "user", content: prompt }],
-        ...(options?.response_format && { response_format: options.response_format }),
       });
-      return typeof result === "string" ? result : JSON.stringify(result);
+
+      if (typeof result === "string") return result;
+      if (typeof (result as Record<string, unknown>).response === "string") {
+        return (result as Record<string, string>).response;
+      }
+      if ((result as Record<string, unknown>).choices) {
+        const choices = (result as Record<string, Array<{ message: { content: string } }>>).choices;
+        if (choices && choices[0]?.message?.content) {
+          return choices[0].message.content;
+        }
+      }
+      return JSON.stringify(result);
     };
 
     const result: GenerateResult = await generate(input, callAI, serpData);

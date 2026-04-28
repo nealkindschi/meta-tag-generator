@@ -9,17 +9,20 @@ import {
 } from "./rules";
 
 export function buildParsePrompt(rawInput: string): string {
-  return `Extract structured information from this user's page description. Return JSON with these fields:
+  return `Extract structured information from this page description. Output ONLY a JSON object with NO additional text or explanation. Use this exact format:
+
+{"audience":"...","topic":"...","purpose":"...","action":"...","primaryTopic":"..."}
+
+Fields:
 - audience: Who the content is written for
-- topic: What the content covers (be specific, 3-5 words)
-- purpose: Why this page exists (educate, convert, inform, etc.)
+- topic: What the content covers (3-5 words)
+- purpose: Why this page exists (educate, convert, inform)
 - action: What the user wants visitors to do
-- primaryTopic: The core topic for caching purposes (2-4 words, lowercase)
+- primaryTopic: Core topic for caching (2-4 words, lowercase)
 
-User input:
-"${rawInput}"
+Page description: "${rawInput}"
 
-Return ONLY valid JSON. No additional text.`;
+JSON response:`;
 }
 
 export function buildGeneratePrompt(
@@ -62,10 +65,10 @@ PAGE CONTEXT:
 
 ${serpContext}
 
-Return ONLY valid JSON array. Format:
+Return ONLY a JSON array. No markdown, no explanation, just the array:
 [{"title": "...", "description": "..."}, {"title": "...", "description": "..."}]
 
-Count the characters in your output before returning. If any title exceeds ${TITLE_MAX} chars or any description exceeds ${DESCRIPTION_MAX} chars, shorten it before output.`;
+Count characters carefully. Any title over ${TITLE_MAX} chars or description over ${DESCRIPTION_MAX} chars = rejection. Output:`;
 
   return system;
 }

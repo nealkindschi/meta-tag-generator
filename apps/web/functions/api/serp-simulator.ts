@@ -7,7 +7,7 @@ export async function simulateSerpFallback(
 ): Promise<SerpResult[]> {
   const prompt = buildSimulatedSerpPrompt(topic);
 
-  const result = await env.AI.run("@cf/meta/llama-3.2-1b-instruct", {
+  const result = await env.AI.run("@cf/meta/llama-3.1-8b-instruct-fast", {
     messages: [{ role: "user", content: prompt }],
   });
 

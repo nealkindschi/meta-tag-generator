@@ -6,7 +6,36 @@ import { MAX_RETRIES } from "./rules";
 type CallAI = (prompt: string, options?: { response_format?: { type: string } }) => Promise<string>;
 
 function stripResponse(response: string): string {
-  return response.replace(/^```json\s*/i, "").replace(/^```\s*/, "").replace(/```\s*$/, "").trim();
+  const cleaned = response
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/, "")
+    .replace(/```\s*$/, "")
+    .trim();
+
+  if (cleaned.startsWith("{") || cleaned.startsWith("[")) {
+    return cleaned;
+  }
+
+  const arrayMatch = cleaned.match(/\[[\s\S]*\]/);
+  if (arrayMatch) return arrayMatch[0];
+
+  const objMatch = cleaned.match(/\{[\s\S]*\}/);
+  if (objMatch) return objMatch[0];
+
+  return cleaned;
+}
+
+function safeParseJson<T>(raw: string): T {
+  let text = stripResponse(raw);
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    text = text
+      .replace(/,(\s*[}\]])/g, "$1")
+      .replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3');
+    return JSON.parse(text) as T;
+  }
 }
 
 function humanReadableTitle(
@@ -32,8 +61,8 @@ export async function generate(
   const startTime = Date.now();
 
   const parsePrompt = buildParsePrompt(input.rawInput);
-  const parseResponse = await callAI(parsePrompt, { response_format: { type: "json_object" } });
-  const parsed: ParsedInput = JSON.parse(stripResponse(parseResponse));
+  const parseResponse = await callAI(parsePrompt);
+  const parsed: ParsedInput = safeParseJson<ParsedInput>(parseResponse);
 
   const generatePrompt = buildGeneratePrompt(
     parsed,
@@ -43,8 +72,8 @@ export async function generate(
     4
   );
 
-  const genResponse = await callAI(generatePrompt, { response_format: { type: "json_object" } });
-  const rawVersions: { title: string; description: string }[] = JSON.parse(stripResponse(genResponse));
+  const genResponse = await callAI(generatePrompt);
+  const rawVersions = safeParseJson<{ title: string; description: string }[]>(genResponse);
 
   const versions: MetaTagVersion[] = [];
   const failedIndices: number[] = [];
@@ -72,10 +101,8 @@ export async function generate(
     }));
 
     const retryPrompt = buildRetryPrompt(failedVersions, parsed, input.keywords);
-    const retryResponse = await callAI(retryPrompt, { response_format: { type: "json_object" } });
-    const retryVersions: { title: string; description: string }[] = JSON.parse(
-      stripResponse(retryResponse)
-    );
+    const retryResponse = await callAI(retryPrompt);
+    const retryVersions = safeParseJson<{ title: string; description: string }[]>(retryResponse);
 
     const newFailedIndices: number[] = [];
 
@@ -131,7 +158,7 @@ export function parseRawInput(
   callAI: CallAI
 ): Promise<ParsedInput> {
   const parsePrompt = buildParsePrompt(rawInput);
-  return callAI(parsePrompt, { response_format: { type: "json_object" } }).then((res) =>
-    JSON.parse(stripResponse(res))
+  return callAI(parsePrompt).then((res) =>
+    safeParseJson<ParsedInput>(res)
   );
 }
