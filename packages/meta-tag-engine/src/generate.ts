@@ -12,18 +12,30 @@ function stripResponse(response: string): string {
     .replace(/```\s*$/, "")
     .trim();
 
-  if (text.startsWith("{") || text.startsWith("[")) {
-    return text;
-  }
-
-  const safeRegex = (open: string, close: string): string | null => {
+  const bracketMatch = (open: string, close: string): string | null => {
     let depth = 0;
     let start = -1;
+    let inString = false;
+    let escape = false;
     for (let i = 0; i < text.length; i++) {
-      if (text[i] === open) {
+      const ch = text[i];
+      if (escape) {
+        escape = false;
+        continue;
+      }
+      if (ch === "\\") {
+        escape = true;
+        continue;
+      }
+      if (ch === '"' && !escape) {
+        inString = !inString;
+        continue;
+      }
+      if (inString) continue;
+      if (ch === open) {
         if (start === -1) start = i;
         depth++;
-      } else if (text[i] === close) {
+      } else if (ch === close) {
         depth--;
         if (depth === 0 && start !== -1) return text.substring(start, i + 1);
       }
@@ -31,10 +43,19 @@ function stripResponse(response: string): string {
     return null;
   };
 
-  const arrayResult = safeRegex("[", "]");
+  if (text.startsWith("[")) {
+    const match = bracketMatch("[", "]");
+    return match || text;
+  }
+  if (text.startsWith("{")) {
+    const match = bracketMatch("{", "}");
+    return match || text;
+  }
+
+  const arrayResult = bracketMatch("[", "]");
   if (arrayResult) return arrayResult;
 
-  const objResult = safeRegex("{", "}");
+  const objResult = bracketMatch("{", "}");
   if (objResult) return objResult;
 
   return text;
