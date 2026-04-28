@@ -6,23 +6,38 @@ import { MAX_RETRIES } from "./rules";
 type CallAI = (prompt: string, options?: { response_format?: { type: string } }) => Promise<string>;
 
 function stripResponse(response: string): string {
-  const cleaned = response
+  let text = response
     .replace(/^```json\s*/i, "")
     .replace(/^```\s*/, "")
     .replace(/```\s*$/, "")
     .trim();
 
-  if (cleaned.startsWith("{") || cleaned.startsWith("[")) {
-    return cleaned;
+  if (text.startsWith("{") || text.startsWith("[")) {
+    return text;
   }
 
-  const arrayMatch = cleaned.match(/\[[\s\S]*\]/);
-  if (arrayMatch) return arrayMatch[0];
+  const safeRegex = (open: string, close: string): string | null => {
+    let depth = 0;
+    let start = -1;
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === open) {
+        if (start === -1) start = i;
+        depth++;
+      } else if (text[i] === close) {
+        depth--;
+        if (depth === 0 && start !== -1) return text.substring(start, i + 1);
+      }
+    }
+    return null;
+  };
 
-  const objMatch = cleaned.match(/\{[\s\S]*\}/);
-  if (objMatch) return objMatch[0];
+  const arrayResult = safeRegex("[", "]");
+  if (arrayResult) return arrayResult;
 
-  return cleaned;
+  const objResult = safeRegex("{", "}");
+  if (objResult) return objResult;
+
+  return text;
 }
 
 function safeParseJson<T>(raw: string): T {
@@ -33,8 +48,13 @@ function safeParseJson<T>(raw: string): T {
   } catch {
     text = text
       .replace(/,(\s*[}\]])/g, "$1")
-      .replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3');
-    return JSON.parse(text) as T;
+      .replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3')
+      .replace(/[\r\n]+\s*$/g, "");
+    try {
+      return JSON.parse(text) as T;
+    } catch (e) {
+      throw new Error(`${(e as Error).message} — raw response snippet: ${raw.substring(0, 200)}`);
+    }
   }
 }
 
