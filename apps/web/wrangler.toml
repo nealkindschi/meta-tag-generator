@@ -10,3 +10,9 @@ binding = "BROWSER"
 
 [ai]
 binding = "AI"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "seo-tools-db"
+database_id = "a591c194-1a06-4e66-9800-5b42efbaa581"
+migrations_dir = "migrations"

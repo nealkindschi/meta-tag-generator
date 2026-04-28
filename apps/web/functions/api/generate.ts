@@ -43,6 +43,20 @@ export async function onRequestPost(context: {
       try {
         const result: GenerateResult = await generate(input, callAI, serpData);
 
+        context.env.DB.prepare(
+          `INSERT INTO generations (raw_input, keywords, title_position, title_label, serp_research)
+           VALUES (?, ?, ?, ?, ?)`
+        )
+          .bind(
+            input.rawInput,
+            input.keywords.join(","),
+            input.titleFormat.position,
+            input.titleFormat.label,
+            input.serpResearch ? 1 : 0
+          )
+          .run()
+          .catch(() => {});
+
         return new Response(JSON.stringify(result), {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },

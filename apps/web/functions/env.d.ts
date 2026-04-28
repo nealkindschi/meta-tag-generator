@@ -17,4 +17,5 @@ interface Env {
     get(key: string, format?: "json"): Promise<unknown>;
     put(key: string, value: string, options?: { expirationTtl: number }): Promise<void>;
   };
+  DB: D1Database;
 }
