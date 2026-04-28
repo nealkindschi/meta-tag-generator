@@ -3,12 +3,9 @@ import { generate } from "../generate";
 import type { UserInput } from "../types";
 
 function createMockAI() {
-  let parseCallCount = 0;
-  let genCallCount = 0;
-
+  const desc = "B".repeat(140) + " Download.";
   const callAI = async (prompt: string): Promise<string> => {
     if (prompt.includes("Extract structured information")) {
-      parseCallCount++;
       return JSON.stringify({
         audience: "Marketing directors",
         topic: "AI lead scoring for B2B SaaS",
@@ -18,32 +15,23 @@ function createMockAI() {
       });
     }
 
-    genCallCount++;
     return JSON.stringify([
       {
-        title: "AI Lead Scoring for B2B SaaS | Complete Guide",
-        description:
-          "Discover how B2B teams use predictive lead scoring to boost conversions. Learn the AI models and ROI. Download the whitepaper.",
+        title: "AI Lead Scoring for B2B SaaS: A Complete Guide",
+        description: desc,
       },
       {
-        title: "What Is AI Lead Scoring? A B2B Marketer's Guide",
-        description:
-          "Learn how AI transforms lead scoring for B2B SaaS companies. Explore ML models, data requirements, and implementation steps. Get started.",
+        title: "What Is AI Lead Scoring? B2B Marketer's Guide",
+        description: desc,
       },
       {
-        title: "Boost B2B Conversions with AI Lead Scoring",
-        description:
-          "Predictive lead scoring helps B2B SaaS teams prioritize high-value prospects. See real-world results and case studies. Read the guide.",
-      },
-      {
-        title: "The 2026 Guide to AI Lead Scoring for SaaS",
-        description:
-          "Master AI-powered lead scoring with this comprehensive guide. Covers predictive models, CRM integration, and best practices. Discover more.",
+        title: "Boost B2B Sales Conversions with Predictive Scoring",
+        description: desc,
       },
     ]);
   };
 
-  return { callAI, getParseCount: () => parseCallCount, getGenCount: () => genCallCount };
+  return { callAI };
 }
 
 const baseInput: UserInput = {
@@ -55,11 +43,11 @@ const baseInput: UserInput = {
 };
 
 describe("generate", () => {
-  it("generates 4 versions", async () => {
+  it("generates 3 versions", async () => {
     const { callAI } = createMockAI();
     const result = await generate(baseInput, callAI, null);
 
-    expect(result.versions).toHaveLength(4);
+    expect(result.versions).toHaveLength(3);
     expect(result.primaryTopic).toBe("AI lead scoring");
     expect(result.serpContext).toBe("none");
     expect(result.computeTime).toBeDefined();
@@ -102,26 +90,11 @@ describe("generate", () => {
   });
 
   it("replaces failed versions with placeholder after max retries", async () => {
-    let attempts = 0;
-    const badAI = async (prompt: string): Promise<string> => {
-      attempts++;
+    const badAI = async (_prompt: string): Promise<string> => {
       return JSON.stringify([
-        {
-          title: "This is an extremely long page title that goes way beyond the maximum character limit for SEO purposes".repeat(3),
-          description: "Too long".repeat(50),
-        },
-        {
-          title: "This is an extremely long page title that goes way beyond the maximum character limit for SEO purposes".repeat(3),
-          description: "Too long".repeat(50),
-        },
-        {
-          title: "This is an extremely long page title that goes way beyond the maximum character limit for SEO purposes".repeat(3),
-          description: "Too long".repeat(50),
-        },
-        {
-          title: "This is an extremely long page title that goes way beyond the maximum character limit for SEO purposes".repeat(3),
-          description: "Too long".repeat(50),
-        },
+        { title: "x".repeat(66), description: "y".repeat(200) },
+        { title: "x".repeat(66), description: "y".repeat(200) },
+        { title: "x".repeat(66), description: "y".repeat(200) },
       ]);
     };
 
@@ -130,6 +103,6 @@ describe("generate", () => {
     const failedCount = result.versions.filter(
       (v) => v.title === "I tried and I failed."
     ).length;
-    expect(failedCount).toBeGreaterThanOrEqual(0);
+    expect(failedCount).toBe(3);
   });
 });

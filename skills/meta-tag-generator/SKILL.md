@@ -32,7 +32,7 @@ Use your built-in search tool to search for the topic. Review the top 5-8 result
 Call `scripts/generate.ts` with the collected inputs. The script imports `@seotools/meta-tag-engine` and handles:
 - Parsing the freeform text into structured fields
 - Building the prompt with validation rules
-- Generating 3-4 versions using Workers AI
+- Generating 3 versions using Workers AI
 - Validating each version against strict character limits and SEO rules
 - Retrying failed versions
 - Returning scored results
@@ -41,11 +41,12 @@ Wait for the generation to complete. If Workers AI is unavailable, inform the us
 
 ### 4. Present results
 
-Display each version with:
-- Title and character count
-- Description and character count
-- Validation badge (green/yellow/red)
-- CTA status, keyword variation, front-loading indicators
+Display each version in a table with:
+- Version number
+- Page title and character count
+- Meta description and character count
+- Pass/fail status
+- CTA status, keyword variation indicators
 - Any warnings
 
 Show the `serpContext` badge indicating data quality (researched/simulated/none).
@@ -55,11 +56,11 @@ Let the user copy individual fields or full versions. They can generate again wi
 ## Rules
 
 The engine enforces these limits. Do not override them:
-- Title: maximum 65 characters
-- Description: maximum 155 characters
-- Description must contain a call to action
+- Page title: 50-65 characters (absolute minimum 50, maximum 65)
+- Meta description: 140-155 characters (absolute minimum 140, maximum 155)
+- Meta description must contain a call to action
 - Keywords must vary across versions — no duplicate exact phrases
-- Primary keywords should appear early in the title
+- Primary keywords should appear early in the page title
 - Maximum 2 retries per failed version
 
 ## Integration

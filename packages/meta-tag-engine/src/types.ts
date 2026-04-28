@@ -38,7 +38,7 @@ export interface MetaTagVersion {
   ctaDetected: boolean;
   keywordVariation: boolean;
   keywordsFrontloaded: boolean;
-  badge: "green" | "yellow" | "red";
+  badge: "green" | "red";
 }
 
 export interface GenerateResult {

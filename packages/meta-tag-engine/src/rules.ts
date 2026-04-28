@@ -1,15 +1,12 @@
 export const TITLE_MAX = 65;
-export const TITLE_MIN = 30;
-export const TITLE_RECOMMENDED_MIN = 50;
-export const TITLE_RECOMMENDED_MAX = 65;
+export const TITLE_MIN = 50;
 
 export const DESCRIPTION_MAX = 155;
-export const DESCRIPTION_MIN = 130;
-export const DESCRIPTION_RECOMMENDED_MIN = 145;
-export const DESCRIPTION_RECOMMENDED_MAX = 155;
+export const DESCRIPTION_MIN = 140;
 
 export const MAX_RETRIES = 2;
 export const SERP_CACHE_TTL_DAYS = 14;
+export const VERSION_COUNT = 3;
 
 export const CTA_PATTERNS = [
   /download/i,
@@ -38,5 +35,3 @@ export const CTA_PATTERNS = [
   /claim/i,
   /apply/i,
 ];
-
-export const CTA_THRESHOLD_WORDS = 3;

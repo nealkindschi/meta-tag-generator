@@ -29,9 +29,9 @@ describe("buildGeneratePrompt", () => {
 
   it("includes hard character limits", () => {
     const prompt = buildGeneratePrompt(parsed, null, [], { position: "none", label: "" });
-    expect(prompt).toContain("65");
-    expect(prompt).toContain("155");
-    expect(prompt).toContain("MAXIMUM");
+    expect(prompt).toContain("50-65");
+    expect(prompt).toContain("140-155");
+    expect(prompt).toContain("no exceptions");
   });
 
   it("includes keywords when provided", () => {

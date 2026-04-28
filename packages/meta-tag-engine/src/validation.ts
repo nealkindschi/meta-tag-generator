@@ -2,12 +2,8 @@ import type { MetaTagVersion } from "./types";
 import {
   TITLE_MAX,
   TITLE_MIN,
-  TITLE_RECOMMENDED_MIN,
-  TITLE_RECOMMENDED_MAX,
   DESCRIPTION_MAX,
   DESCRIPTION_MIN,
-  DESCRIPTION_RECOMMENDED_MIN,
-  DESCRIPTION_RECOMMENDED_MAX,
   CTA_PATTERNS,
 } from "./rules";
 
@@ -36,7 +32,6 @@ function checkKeywordVariation(
 
 function checkKeywordsFrontloaded(
   title: string,
-  description: string,
   keywords?: string[]
 ): boolean {
   if (!keywords || keywords.length === 0) return true;
@@ -46,11 +41,13 @@ function checkKeywordsFrontloaded(
   return keywords.some((kw) => first5Title.includes(kw.toLowerCase()));
 }
 
-function formatKeyword(keyword: string): string {
-  return keyword.replace(/\s+/g, " ").trim().toLowerCase();
+function humanizeList(items: string[]): string {
+  if (items.length === 0) return "valid";
+  if (items.length === 1) return items[0];
+  return items.slice(0, -1).join(", ") + ", and " + items[items.length - 1];
 }
 
-export function validateTitle(title: string, keywords?: string[]): {
+export function validateTitle(title: string): {
   valid: boolean;
   warnings: string[];
 } {
@@ -58,17 +55,14 @@ export function validateTitle(title: string, keywords?: string[]): {
   const len = title.length;
 
   if (len > TITLE_MAX) {
-    warnings.push(`Title too long (${len}/${TITLE_MAX} chars)`);
+    warnings.push(`title is ${len} characters, must be ≤${TITLE_MAX}`);
   }
-  if (len < TITLE_MIN && warnings.length === 0) {
-    warnings.push(`Title may be too short (${len} chars)`);
-  }
-  if (len < TITLE_RECOMMENDED_MIN && len >= TITLE_MIN) {
-    warnings.push(`Title below recommended range (${len}/${TITLE_RECOMMENDED_MIN}-${TITLE_RECOMMENDED_MAX} chars)`);
+  if (len < TITLE_MIN) {
+    warnings.push(`title is ${len} characters, must be ≥${TITLE_MIN}`);
   }
 
   return {
-    valid: len <= TITLE_MAX,
+    valid: len >= TITLE_MIN && len <= TITLE_MAX,
     warnings,
   };
 }
@@ -86,54 +80,33 @@ export function validateDescription(
   const len = description.length;
 
   if (len > DESCRIPTION_MAX) {
-    warnings.push(`Description too long (${len}/${DESCRIPTION_MAX} chars)`);
+    warnings.push(`description is ${len} characters, must be ≤${DESCRIPTION_MAX}`);
   }
-  if (len < DESCRIPTION_MIN && warnings.length === 0) {
-    warnings.push(`Description may be too short (${len} chars)`);
-  }
-  if (len < DESCRIPTION_RECOMMENDED_MIN && len >= DESCRIPTION_MIN) {
-    warnings.push(`Description below recommended range (${len}/${DESCRIPTION_RECOMMENDED_MIN}-${DESCRIPTION_RECOMMENDED_MAX} chars)`);
+  if (len < DESCRIPTION_MIN) {
+    warnings.push(`description is ${len} characters, must be ≥${DESCRIPTION_MIN}`);
   }
 
   const ctaDetected = detectCTA(description);
   if (!ctaDetected) {
-    warnings.push("No call to action detected in description");
+    warnings.push("no call to action detected");
   }
 
-  const keywordVariation = checkKeywordVariation(
-    "",
-    description,
-    keywords
-  );
-  if (!keywordVariation) {
-    warnings.push("Duplicate keyword phrases detected");
+  const variation = checkKeywordVariation("", description, keywords);
+  if (!variation) {
+    warnings.push("duplicate keyword phrases");
   }
+
+  const valid =
+    len >= DESCRIPTION_MIN &&
+    len <= DESCRIPTION_MAX &&
+    ctaDetected &&
+    variation;
 
   return {
-    valid: len <= DESCRIPTION_MAX,
+    valid,
     warnings,
     ctaDetected,
-    keywordVariation,
-  };
-}
-
-export function scoreVersion(
-  title: string,
-  description: string,
-  keywords?: string[]
-): { badge: "green" | "yellow" | "red"; allValid: boolean } {
-  const titleResult = validateTitle(title, keywords);
-  const descResult = validateDescription(description, keywords);
-
-  if (title.length > TITLE_MAX || description.length > DESCRIPTION_MAX) {
-    return { badge: "red", allValid: false };
-  }
-
-  const hasWarnings =
-    titleResult.warnings.length > 0 || descResult.warnings.length > 0;
-  return {
-    badge: hasWarnings ? "yellow" : "green",
-    allValid: !hasWarnings,
+    keywordVariation: variation,
   };
 }
 
@@ -147,11 +120,12 @@ export function buildVersion(
   description: string,
   keywords?: string[]
 ): BuildVersionResult {
-  const titleResult = validateTitle(title, keywords);
+  const titleResult = validateTitle(title);
   const descResult = validateDescription(description, keywords);
-  const frontloaded = checkKeywordsFrontloaded(title, description, keywords);
-  const { badge } = scoreVersion(title, description, keywords);
-  const allValid = titleResult.valid && descResult.valid && descResult.ctaDetected && descResult.keywordVariation;
+  const frontloaded = checkKeywordsFrontloaded(title, keywords);
+
+  const allValid = titleResult.valid && descResult.valid;
+  const badge: "green" | "red" = allValid ? "green" : "red";
 
   return {
     version: {

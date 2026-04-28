@@ -1,73 +1,80 @@
-import type { GenerateResult, MetaTagVersion } from "@seotools/meta-tag-engine";
+import type { GenerateResult, MetaTagVersion, UserInput } from "@seotools/meta-tag-engine";
 
-export function ResultsPanel(result: GenerateResult, serpChecked?: boolean): string {
-  const contextBadge = serpChecked
-    ? `<span class="context-badge context-${result.serpContext}">SERP: ${result.serpContext}</span>`
+export function ResultsPanel(result: GenerateResult, lastInput?: UserInput): string {
+  const contextLabel =
+    result.serpContext === "researched" ? "Researched SERP"
+    : result.serpContext === "simulated" ? "Simulated SERP patterns"
+    : "";
+
+  const inputSummary = lastInput
+    ? `<div class="input-readback">
+        <div class="readback-label">Input summary</div>
+        <div class="readback-content">${escapeHtml(lastInput.rawInput)}</div>
+        ${lastInput.keywords.length ? `<div class="readback-meta">Keywords: ${escapeHtml(lastInput.keywords.join(", "))}</div>` : ""}
+        ${lastInput.titleFormat.label ? `<div class="readback-meta">Title format: ${lastInput.titleFormat.position} "${escapeHtml(lastInput.titleFormat.label)}"</div>` : ""}
+      </div>`
     : "";
 
   return `
     <div class="results-panel" aria-live="polite">
-      <div class="results-header">
-        <h2>${result.versions.length} Versions Generated</h2>
-        ${contextBadge}
+      <div class="results-topbar">
+        <button id="back-btn" class="back-btn" aria-label="Back to input">&larr; Back</button>
+        ${contextLabel ? `<span class="context-badge context-${result.serpContext}">${contextLabel}</span>` : ""}
       </div>
-      <div class="versions-grid" role="list">
-        ${result.versions.map((v, i) => VersionCard(v, i)).join("")}
+
+      ${inputSummary}
+
+      <div class="table-container">
+        <table class="results-table" role="table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Page title</th>
+              <th>Meta description</th>
+              <th>Passed</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${result.versions.map((v, i) => tableRow(v, i)).join("")}
+          </tbody>
+        </table>
       </div>
-      <button id="back-btn" class="secondary-btn">Generate Again</button>
     </div>
   `;
 }
 
-function VersionCard(version: MetaTagVersion, index: number): string {
-  const badgeColors: Record<string, string> = {
-    green: "#16a34a",
-    yellow: "#ca8a04",
-    red: "#dc2626",
-  };
+function tableRow(version: MetaTagVersion, index: number): string {
+  const statusIcon = version.badge === "green" ? "&#x2713;" : "&#x2717;";
+  const statusColor = version.badge === "green" ? "var(--color-success)" : "var(--color-error)";
+
+  const titleIssues = version.titleWarnings.filter(w => w).length;
+  const descIssues = version.descriptionWarnings.filter(w => w).length;
 
   return `
-    <div class="version-card badge-${version.badge}" role="listitem">
-      <div class="version-header">
-        <span class="version-number">Version ${index + 1}</span>
-        <span class="badge" style="background: ${badgeColors[version.badge]}; color: white;" aria-label="${version.badge === "green" ? "All checks passed" : version.badge === "yellow" ? "Minor warnings" : "Issues found"}">
-          ${version.badge === "green" ? "&#x2713; Pass" : version.badge === "yellow" ? "&#x26A0; Warnings" : "&#x2717; Issues"}
-        </span>
-      </div>
-
-      <div class="meta-field">
-        <div class="field-header">
-          <strong>Title</strong>
-          <span class="char-count ${version.titleValid ? "valid" : "invalid"}">${version.titleLength}/65</span>
+    <tr class="version-row ${version.badge === "green" ? "row-pass" : "row-fail"}">
+      <td class="col-index">${index + 1}</td>
+      <td class="col-title">
+        <div class="cell-value">${escapeHtml(version.title)}</div>
+        <div class="cell-meta">
+          <span class="char-count ${version.titleValid ? "valid" : "invalid"}">${version.titleValid ? "&#x2713;" : "&#x2717;"} ${version.titleLength}/65</span>
+          ${titleIssues > 0 ? `<span class="cell-warnings">${escapeHtml(version.titleWarnings.join("; "))}</span>` : ""}
         </div>
-        <p class="version-title">${escapeHtml(version.title)}</p>
-        <button class="copy-btn" data-copy="${escapeAttr(version.title)}">Copy</button>
-      </div>
-
-      <div class="meta-field">
-        <div class="field-header">
-          <strong>Description</strong>
-          <span class="char-count ${version.descriptionValid ? "valid" : "invalid"}">${version.descriptionLength}/155</span>
-        </div>
-        <p class="version-description">${escapeHtml(version.description)}</p>
-        <div class="field-tags">
+        <button class="copy-small" data-copy="${escapeAttr(version.title)}" aria-label="Copy page title">Copy</button>
+      </td>
+      <td class="col-desc">
+        <div class="cell-value">${escapeHtml(version.description)}</div>
+        <div class="cell-meta">
+          <span class="char-count ${version.descriptionValid ? "valid" : "invalid"}">${version.descriptionValid ? "&#x2713;" : "&#x2717;"} ${version.descriptionLength}/155</span>
           ${version.ctaDetected ? '<span class="tag tag-good">CTA</span>' : '<span class="tag tag-bad">No CTA</span>'}
-          ${version.keywordVariation ? '<span class="tag tag-good">Variation</span>' : '<span class="tag tag-bad">Duplicate Keywords</span>'}
-          ${version.keywordsFrontloaded ? '<span class="tag tag-good">Frontloaded</span>' : ''}
+          ${version.keywordVariation ? '<span class="tag tag-good">Variation</span>' : '<span class="tag tag-bad">Duplicate keywords</span>'}
+          ${descIssues > 0 ? `<span class="cell-warnings">${escapeHtml(version.descriptionWarnings.join("; "))}</span>` : ""}
         </div>
-        <button class="copy-btn" data-copy="${escapeAttr(version.description)}">Copy</button>
-      </div>
-
-      ${version.titleWarnings.length > 0 || version.descriptionWarnings.length > 0 ? `
-        <div class="warnings">
-          ${[...version.titleWarnings, ...version.descriptionWarnings]
-            .map((w) => `<p class="warning">${escapeHtml(w)}</p>`)
-            .join("")}
-        </div>
-      ` : ""}
-
-      <button class="copy-all-btn">Copy All</button>
-    </div>
+        <button class="copy-small" data-copy="${escapeAttr(version.description)}" aria-label="Copy meta description">Copy</button>
+      </td>
+      <td class="col-status">
+        <span class="status-icon" style="color:${statusColor}" aria-label="${version.badge === "green" ? "All checks passed" : "Issues found"}">${statusIcon}</span>
+      </td>
+    </tr>
   `;
 }
 

@@ -35,7 +35,7 @@ function renderMain(): string {
     case "loading":
       return LoadingState();
     case "results":
-      return ResultsPanel(state.result!, state.lastInput?.serpResearch);
+      return ResultsPanel(state.result!, state.lastInput);
     case "error":
       return ErrorState(state.error!, state.lastInput);
     default:

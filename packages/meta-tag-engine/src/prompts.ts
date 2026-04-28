@@ -1,11 +1,9 @@
 import type { ParsedInput, SerpResult } from "./types";
 import {
   TITLE_MAX,
-  TITLE_RECOMMENDED_MIN,
-  TITLE_RECOMMENDED_MAX,
+  TITLE_MIN,
   DESCRIPTION_MAX,
-  DESCRIPTION_RECOMMENDED_MIN,
-  DESCRIPTION_RECOMMENDED_MAX,
+  DESCRIPTION_MIN,
 } from "./rules";
 
 export function buildParsePrompt(rawInput: string): string {
@@ -46,8 +44,8 @@ Use these in natural variation across titles and descriptions. Never repeat the 
   const system = `You are an expert SEO meta tag writer for enterprise content. Generate ${versionCount} distinct versions of page titles and meta descriptions.
 
 CRITICAL RULES - These are hard requirements, not suggestions:
-1. Title: ${TITLE_RECOMMENDED_MIN}-${TITLE_RECOMMENDED_MAX} characters (MAXIMUM ${TITLE_MAX}, no exceptions)
-2. Description: ${DESCRIPTION_RECOMMENDED_MIN}-${DESCRIPTION_RECOMMENDED_MAX} characters (MAXIMUM ${DESCRIPTION_MAX}, no exceptions)
+1. Page title: ${TITLE_MIN}-${TITLE_MAX} characters (at least ${TITLE_MIN}, no more than ${TITLE_MAX}, no exceptions)
+2. Meta description: ${DESCRIPTION_MIN}-${DESCRIPTION_MAX} characters (at least ${DESCRIPTION_MIN}, no more than ${DESCRIPTION_MAX}, no exceptions)
 3. Description MUST contain a clear call to action (e.g., download, learn, discover, get started, sign up, read)
 4. Front-load primary keywords and their natural variations in titles and descriptions
 5. Use keyword variations across versions - never repeat identical keyword phrases
@@ -122,9 +120,9 @@ export function buildRetryPrompt(
 ${failureItems}
 
 Please regenerate these versions fixing ONLY the issues listed above. Keep the same distinct approaches but ensure:
-- Title: ${TITLE_RECOMMENDED_MIN}-${TITLE_RECOMMENDED_MAX} chars (≤${TITLE_MAX})
-- Description: ${DESCRIPTION_RECOMMENDED_MIN}-${DESCRIPTION_RECOMMENDED_MAX} chars (≤${DESCRIPTION_MAX})
-- Description MUST contain a call to action
+- Page title: ${TITLE_MIN}-${TITLE_MAX} characters
+- Meta description: ${DESCRIPTION_MIN}-${DESCRIPTION_MAX} characters
+- Meta description MUST contain a call to action
 - Keywords varied across versions: ${keywords.join(", ")}
 
 Context: ${parsed.audience} | ${parsed.topic} | ${parsed.purpose} | ${parsed.action}

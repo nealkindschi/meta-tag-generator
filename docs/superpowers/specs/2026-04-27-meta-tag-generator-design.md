@@ -89,7 +89,7 @@ export const manifest = {
 4. Clicks "Generate"
 5. Engine parses the freeform text (using the same AI model) to extract structured fields
 6. If SERP on: Browser Rendering searches the topic, scrapes top results, passes patterns to prompt
-7. Workers AI generates 3-4 versions
+7. Workers AI generates 3 versions
 8. Engine validates each version; failures trigger up to 2 retries per version
 9. Results displayed with scores and copy buttons
 
@@ -121,7 +121,7 @@ export const manifest = {
    d. Write results to KV with 7-day TTL
    e. On Browser Rendering failure: retry once → if still fails, use Workers AI to generate approximate SERP patterns
 3. Construct prompt with extracted inputs + SERP context + validation rules
-4. Call Workers AI (`@cf/meta/llama-3.2-1b-instruct`) to generate 4 versions
+4. Call Workers AI (`@cf/meta/llama-3.1-8b-instruct-fast`) to generate 4 versions
 5. Validate each version against rules (title ≤60 chars, description ≤160 chars, CTA present, keywords varied)
 6. Versions failing validation → retry generation up to 2 times
 7. Versions still failing after retries → show "Could not generate this version" placeholder
@@ -139,7 +139,7 @@ export const manifest = {
     descriptionValid: boolean;
     ctaDetected: boolean;
     keywordVariation: boolean;
-    badge: "green" | "yellow" | "red";
+    badge: "green" | "red";
   }[];
   serpContext: "researched" | "simulated" | "none";
   primaryTopic: string;
@@ -154,15 +154,11 @@ Hard rules (enforced before returning to user):
 
 | Rule | Limit | Failure action |
 |------|-------|---------------|
-| Title length | 50-65 chars recommended, ≤65 hard cap | Retry generation |
-| Description length | 145-155 recommended, ≤155 hard cap | Retry generation |
-| CTA in description | Must contain an action phrase | Retry generation |
+| Page title length | 50-65 chars (hard floor at 50, hard cap at 65) | Retry generation |
+| Meta description length | 140-155 chars (hard floor at 140, hard cap at 155) | Retry generation |
+| CTA in meta description | Must contain an action phrase | Retry generation |
 | Keyword variation | No duplicate exact keyword phrases | Retry generation |
-| Keyword front-loading | Primary keywords appear early in title/description | Warning only |
-
-Soft rules (warning only):
-- Description >300 chars (should never happen due to hard cap)
-- Title <30 chars (too short for SERP visibility)
+| Keyword front-loading | Primary keywords appear early in page title | Warning only |
 
 All failures trigger regeneration. After 2 retries, the slot shows a "I tried and I failed." placeholder. The user never sees invalid output.
 
@@ -189,7 +185,7 @@ All failures trigger regeneration. After 2 retries, the slot shows a "I tried an
 
 ## AI Model
 
-**Model:** `@cf/meta/llama-3.2-1b-instruct` (Workers AI)
+**Model:** `@cf/meta/llama-3.1-8b-instruct-fast` (Workers AI)
 
 - Input: $0.027 per M tokens
 - Output: $0.201 per M tokens

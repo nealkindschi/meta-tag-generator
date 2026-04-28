@@ -1,7 +1,7 @@
 import type { UserInput, ParsedInput, MetaTagVersion, GenerateResult, SerpResult } from "./types";
 import { buildParsePrompt, buildGeneratePrompt, buildRetryPrompt } from "./prompts";
-import { buildVersion, scoreVersion } from "./validation";
-import { MAX_RETRIES } from "./rules";
+import { buildVersion } from "./validation";
+import { MAX_RETRIES, VERSION_COUNT } from "./rules";
 
 type CallAI = (prompt: string, options?: { response_format?: { type: string } }) => Promise<string>;
 
@@ -89,7 +89,7 @@ export async function generate(
     serpData,
     input.keywords,
     input.titleFormat,
-    4
+    VERSION_COUNT
   );
 
   const genResponse = await callAI(generatePrompt);
@@ -113,10 +113,8 @@ export async function generate(
       title: versions[i].title,
       description: versions[i].description,
       failures: [
-        ...versions[i].titleWarnings.filter((w) => w.includes("too long")),
-        ...versions[i].descriptionWarnings.filter(
-          (w) => w.includes("too long") || w.includes("call to action") || w.includes("Duplicate")
-        ),
+        ...versions[i].titleWarnings,
+        ...versions[i].descriptionWarnings,
       ],
     }));
 
