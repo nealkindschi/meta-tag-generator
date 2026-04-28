@@ -3,13 +3,10 @@ compatibility_date = "2026-04-27"
 
 [[kv_namespaces]]
 binding = "SEO_TOOLS_KV"
-id = "placeholder-id"
+id = "40b3a293f827401ea0360df1defe4007"
 
 [browser]
 binding = "BROWSER"
 
 [ai]
 binding = "AI"
-
-[site]
-bucket = "./dist"
