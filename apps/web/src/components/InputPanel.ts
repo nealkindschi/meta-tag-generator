@@ -20,6 +20,7 @@ export function InputPanel(): string {
           id="keywords-input"
           class="text-input"
           placeholder="AI lead scoring, B2B SaaS, predictive scoring"
+          autocomplete="off"
         />
         <p class="help-text">Separate with commas. The AI will use these in natural variation.</p>
       </div>
