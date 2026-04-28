@@ -72,7 +72,6 @@ export const manifest = {
 **Left/Top — Input Panel:**
 - Smart textarea: freeform natural language description of the page
 - Self-provided keywords field (optional)
-- Title format: dropdown (Prefix/Suffix/None) + text input for brand label (e.g., `Cloudflare`, `theNET`)
 - SERP research toggle (on/off)
 - Generate button
 
@@ -155,8 +154,8 @@ Hard rules (enforced before returning to user):
 
 | Rule | Limit | Failure action |
 |------|-------|---------------|
-| Title length | 50-60 chars recommended, ≤60 hard cap | Retry generation |
-| Description length | 150-160 recommended, ≤160 hard cap | Retry generation |
+| Title length | 50-65 chars recommended, ≤65 hard cap | Retry generation |
+| Description length | 145-155 recommended, ≤155 hard cap | Retry generation |
 | CTA in description | Must contain an action phrase | Retry generation |
 | Keyword variation | No duplicate exact keyword phrases | Retry generation |
 | Keyword front-loading | Primary keywords appear early in title/description | Warning only |
@@ -165,7 +164,7 @@ Soft rules (warning only):
 - Description >300 chars (should never happen due to hard cap)
 - Title <30 chars (too short for SERP visibility)
 
-All failures trigger regeneration. After 2 retries, the slot shows a "Could not generate" placeholder. The user never sees invalid output.
+All failures trigger regeneration. After 2 retries, the slot shows a "I tried and I failed." placeholder. The user never sees invalid output.
 
 ---
 
@@ -176,7 +175,7 @@ All failures trigger regeneration. After 2 retries, the slot shows a "Could not 
 - Cache key: primary topic extracted from user input (not exact query text)
 - "AI lead scoring for SaaS teams in 2026" → extracted topic "AI lead scoring" → cache key `serp:ai-lead-scoring`
 - Different users querying variations all hit the same cache bucket
-- KV TTL: 7 days
+- KV TTL: 14 days
 
 ### Failure Strategy
 
