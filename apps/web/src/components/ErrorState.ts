@@ -7,8 +7,8 @@ export function ErrorState(message: string, lastInput?: UserInput): string {
       <h3>Generation failed</h3>
       <p>${escapeHtml(message)}</p>
       <div class="error-actions">
-        <button id="retry-btn" class="generate-btn">Try again</button>
-        <button id="back-btn" class="secondary-btn">Start over</button>
+        <button id="retry-btn" class="error-action-btn error-action-primary">Try again</button>
+        <button id="back-btn" class="error-action-btn error-action-secondary">Start over</button>
       </div>
     </div>
   `;
