@@ -1,16 +1,16 @@
 /**
  * Terminal script for the meta-tag-generator skill.
- * Reads inputs and displays formatted results.
+ * Run from the project root: npx tsx skills/meta-tag-generator/scripts/generate.ts
  *
- * This script is designed to be invoked by the AI agent.
- * The agent provides the callAI function (its own model) and optional SERP data.
+ * This script is invoked by the AI agent when the skill is activated.
+ * The agent provides inputs and the callAI function.
  */
 import type {
   UserInput,
   GenerateResult,
   MetaTagVersion,
-} from "@seotools/meta-tag-engine";
-import { generate } from "@seotools/meta-tag-engine";
+} from "../../../packages/meta-tag-engine/src/index";
+import { generate } from "../../../packages/meta-tag-engine/src/index";
 
 interface GenerateInput {
   rawInput: string;
@@ -21,7 +21,10 @@ interface GenerateInput {
 
 export async function run(
   input: GenerateInput,
-  callAI: (prompt: string, opts?: { response_format?: { type: string } }) => Promise<string>,
+  callAI: (
+    prompt: string,
+    opts?: { response_format?: { type: string } }
+  ) => Promise<string>,
   serpData?: { title: string; description: string; url: string }[] | null
 ): Promise<string> {
   const userInput: UserInput = {
@@ -35,7 +38,10 @@ export async function run(
   return formatResult(result, userInput.serpResearch);
 }
 
-function formatResult(result: GenerateResult, serpChecked: boolean): string {
+function formatResult(
+  result: GenerateResult,
+  serpChecked: boolean
+): string {
   const serpLine = serpChecked
     ? `- SERP context: ${result.serpContext}`
     : "";
@@ -49,10 +55,13 @@ function formatResult(result: GenerateResult, serpChecked: boolean): string {
 
   for (let i = 0; i < result.versions.length; i++) {
     const v = result.versions[i];
-    const badge = v.badge === "green" ? "✓" : v.badge === "yellow" ? "⚠" : "✗";
+    const badge =
+      v.badge === "green" ? "✓" : v.badge === "yellow" ? "⚠" : "✗";
     lines.push(`### Version ${i + 1} ${badge}`);
     lines.push(`**Title** (${v.titleLength}/65): ${v.title}`);
-    lines.push(`**Description** (${v.descriptionLength}/155): ${v.description}`);
+    lines.push(
+      `**Description** (${v.descriptionLength}/155): ${v.description}`
+    );
 
     const tags: string[] = [];
     if (v.ctaDetected) tags.push("CTA");
