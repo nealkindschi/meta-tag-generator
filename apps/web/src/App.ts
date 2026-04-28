@@ -21,7 +21,7 @@ export function App(): string {
     <div class="app-container">
       <header class="app-header">
         <h1>Meta tag generator</h1>
-        <p class="subtitle">Describe your page and get optimized title & description pairs</p>
+        <p class="subtitle">Enhance your SEO with free optimized meta tags for your website</p>
       </header>
       <main id="main-content" aria-live="polite" aria-atomic="true">
         ${renderMain()}
