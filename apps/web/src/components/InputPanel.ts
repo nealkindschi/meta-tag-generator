@@ -44,7 +44,7 @@ export function InputPanel(): string {
         </div>
       </div>
 
-      <div class="form-group">
+      <div class="form-group toggle-group">
         <label class="toggle-label">
           <input type="checkbox" id="serp-toggle" class="toggle-input" />
           <span class="toggle-switch"></span>
