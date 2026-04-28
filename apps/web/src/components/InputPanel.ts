@@ -8,8 +8,9 @@ export function InputPanel(): string {
           class="smart-textarea"
           placeholder="Example: This is a whitepaper about AI lead scoring for B2B SaaS marketing directors. It explains how predictive models work and the goal is to get readers to download the full report."
           rows="4"
+          aria-describedby="raw-input-help"
         ></textarea>
-        <p class="help-text">Include: who it's for, what it's about, the page purpose, and the desired action</p>
+        <p class="help-text" id="raw-input-help">Include: who it's for, what it's about, the page purpose, and the desired action</p>
       </div>
 
       <div class="form-group">

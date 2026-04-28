@@ -6,12 +6,12 @@ export function ResultsPanel(result: GenerateResult, serpChecked?: boolean): str
     : "";
 
   return `
-    <div class="results-panel">
+    <div class="results-panel" aria-live="polite">
       <div class="results-header">
         <h2>${result.versions.length} Versions Generated</h2>
         ${contextBadge}
       </div>
-      <div class="versions-grid">
+      <div class="versions-grid" role="list">
         ${result.versions.map((v, i) => VersionCard(v, i)).join("")}
       </div>
       <button id="back-btn" class="secondary-btn">Generate Again</button>
@@ -27,11 +27,11 @@ function VersionCard(version: MetaTagVersion, index: number): string {
   };
 
   return `
-    <div class="version-card badge-${version.badge}">
+    <div class="version-card badge-${version.badge}" role="listitem">
       <div class="version-header">
         <span class="version-number">Version ${index + 1}</span>
-        <span class="badge" style="background: ${badgeColors[version.badge]}; color: white;">
-          ${version.badge === "green" ? "All Checks Pass" : version.badge === "yellow" ? "Minor Warnings" : "Issues Found"}
+        <span class="badge" style="background: ${badgeColors[version.badge]}; color: white;" aria-label="${version.badge === "green" ? "All checks passed" : version.badge === "yellow" ? "Minor warnings" : "Issues found"}">
+          ${version.badge === "green" ? "&#x2713; Pass" : version.badge === "yellow" ? "&#x26A0; Warnings" : "&#x2717; Issues"}
         </span>
       </div>
 

@@ -23,7 +23,7 @@ export function App(): string {
         <h1>Meta Tag Generator</h1>
         <p class="subtitle">Describe your page and get optimized title & description pairs</p>
       </header>
-      <main id="main-content">
+      <main id="main-content" aria-live="polite" aria-atomic="true">
         ${renderMain()}
       </main>
     </div>

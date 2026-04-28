@@ -2,8 +2,8 @@ import type { UserInput } from "@seotools/meta-tag-engine";
 
 export function ErrorState(message: string, lastInput?: UserInput): string {
   return `
-    <div class="error-state">
-      <div class="error-icon">!</div>
+    <div class="error-state" role="alert">
+      <div class="error-icon" aria-hidden="true">!</div>
       <h3>Generation Failed</h3>
       <p>${escapeHtml(message)}</p>
       <div class="error-actions">
