@@ -6,8 +6,14 @@ import {
   DESCRIPTION_MIN,
 } from "./rules";
 
-export function buildParsePrompt(rawInput: string): string {
-  return `Extract structured information from this page description. Output ONLY a JSON object with NO additional text or explanation. Use this exact format:
+export function buildParsePrompt(rawInput: string, pageContent?: string): string {
+  const pageSection = pageContent
+    ? `
+ACTUAL PAGE CONTENT (fetched from the live page — use this alongside the user description):
+${pageContent}`
+    : "";
+
+  return `Extract structured information from this page description.${pageContent ? " Blend the user's stated description with what appears on the actual page. Prefer action words and purpose signals found in the page content." : ""} Output ONLY a JSON object with NO additional text or explanation. Use this exact format:
 
 {"audience":"...","topic":"...","purpose":"...","action":"...","primaryTopic":"..."}
 
@@ -15,9 +21,9 @@ Fields:
 - audience: Who the content is written for
 - topic: What the content covers (3-5 words)
 - purpose: Why this page exists (educate, convert, inform)
-- action: What the user wants visitors to do
+- action: What the user wants visitors to do${pageContent ? " (prefer CTAs found on the actual page)" : ""}
 - primaryTopic: Core topic for caching (2-4 words, lowercase)
-
+${pageSection}
 Page description: "${rawInput}"
 
 JSON response:`;

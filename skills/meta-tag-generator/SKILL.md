@@ -16,12 +16,24 @@ Use when the user needs:
 
 ### 1. Gather information conversationally
 
-Ask the user to describe their page in natural language. They should include: who the content is for, what it's about, the page's purpose, and the desired visitor action. Accept freeform text.
+Ask the user for:
 
-Also ask for:
+- **Page URL** (optional, first field) — the URL they are writing meta tags for. If provided, fetch it to extract page purpose and action words from the live page content.
+- **Page description** — freeform text describing their page. Include: who the content is for, what it's about, the page's purpose, and the desired visitor action.
 - Target keywords (optional, comma-separated)
 - Title format preference: prefix (brand first) or suffix (brand at end) with the brand/label text
 - Whether to research current SERP patterns first
+
+### 1a. Fetch page URL (if provided)
+
+If the user provides a page URL:
+1. Use your built-in web fetch tool to retrieve the page content
+2. Extract visible text (strip HTML tags)
+3. Scan for action words matching the CTA patterns: download, sign up, buy, schedule, subscribe, get started, learn more, discover, explore, try, start, join, register, book, contact, request, shop, read, watch, find out, see how, begin, access, claim, apply
+4. Note the page's apparent purpose from its content
+5. Construct a `pageContent` string with: extracted action words + key text excerpt (first ~1000 chars of visible text)
+6. Pass `pageUrl` and `pageContent` to the `run()` function in `scripts/generate.ts`
+7. If the URL is unreachable, skip gracefully — proceed with user description only
 
 ### 2. Research SERP patterns (optional, if user wants)
 

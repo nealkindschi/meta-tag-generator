@@ -78,6 +78,7 @@ export function initApp(): void {
 }
 
 async function handleGenerate(): Promise<void> {
+  const pageUrl = (document.getElementById("page-url") as HTMLInputElement)?.value || "";
   const rawInput = (document.getElementById("raw-input") as HTMLTextAreaElement)?.value || "";
   const keywordsStr = (document.getElementById("keywords-input") as HTMLInputElement)?.value || "";
   const serpResearch = (document.getElementById("serp-toggle") as HTMLInputElement)?.checked || false;
@@ -94,6 +95,7 @@ async function handleGenerate(): Promise<void> {
       label: formatLabel.trim(),
     },
     serpResearch,
+    pageUrl: pageUrl.trim() || undefined,
   };
 
   state = { phase: "loading", lastInput: input };

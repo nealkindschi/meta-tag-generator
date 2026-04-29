@@ -1,5 +1,5 @@
 import type { UserInput, SerpResult, GenerateResult } from "@seotools/meta-tag-engine";
-import { generate, SERP_CACHE_TTL_DAYS } from "@seotools/meta-tag-engine";
+import { generate, SERP_CACHE_TTL_DAYS, CTA_PATTERNS } from "@seotools/meta-tag-engine";
 import { simulateSerpFallback } from "./serp-simulator";
 
 export async function onRequestPost(context: {
@@ -19,6 +19,10 @@ export async function onRequestPost(context: {
     const serpData = input.serpResearch
       ? await getSerpData(input, context.env)
       : null;
+
+    if (input.pageUrl) {
+      input.pageContent = await fetchPageContent(input.pageUrl);
+    }
 
     const callAI = async (prompt: string): Promise<string> => {
       const result = await context.env.AI.run("@cf/meta/llama-3.1-8b-instruct-fast", {
@@ -44,15 +48,16 @@ export async function onRequestPost(context: {
         const result: GenerateResult = await generate(input, callAI, serpData);
 
         context.env.DB.prepare(
-          `INSERT INTO generations (raw_input, keywords, title_position, title_label, serp_research)
-           VALUES (?, ?, ?, ?, ?)`
+          `INSERT INTO generations (raw_input, keywords, title_position, title_label, serp_research, page_url)
+           VALUES (?, ?, ?, ?, ?, ?)`
         )
           .bind(
             input.rawInput,
             input.keywords.join(","),
             input.titleFormat.position,
             input.titleFormat.label,
-            input.serpResearch ? 1 : 0
+            input.serpResearch ? 1 : 0,
+            input.pageUrl || ""
           )
           .run()
           .catch(() => {});
@@ -102,6 +107,7 @@ function validateInput(body: unknown): UserInput {
   }
   const keywords = Array.isArray(b.keywords) ? b.keywords.map(String) : [];
   const serpResearch = Boolean(b.serpResearch);
+  const pageUrl = typeof b.pageUrl === "string" ? b.pageUrl.trim() : undefined;
   const titleFormat = {
     position: String(
       (b.titleFormat as Record<string, unknown>)?.position || "none"
@@ -110,7 +116,7 @@ function validateInput(body: unknown): UserInput {
       (b.titleFormat as Record<string, unknown>)?.label || ""
     ),
   };
-  return { rawInput, keywords, titleFormat, serpResearch };
+  return { rawInput, keywords, titleFormat, serpResearch, pageUrl };
 }
 
 async function getSerpData(
@@ -193,4 +199,39 @@ function slugifyTopic(topic: string): string {
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .substring(0, 64);
+}
+
+async function fetchPageContent(pageUrl: string): Promise<string | undefined> {
+  try {
+    const res = await fetch(pageUrl, {
+      headers: { "User-Agent": "seo-tools-platform/1.0" },
+    });
+    if (!res.ok) return undefined;
+    const html = await res.text();
+    const visibleText = html
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+       .replace(/<[^>]*>/g, " ")
+      .replace(/&[a-z]+;/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .substring(0, 2000);
+
+    if (!visibleText) return undefined;
+
+    const foundActions: string[] = [];
+    for (const pattern of CTA_PATTERNS) {
+      if (pattern.test(visibleText)) {
+         foundActions.push(pattern.source);
+      }
+    }
+
+    const actionLine = foundActions.length > 0
+      ? `Action words found: ${foundActions.join(", ")}`
+      : "No specific action words detected.";
+
+    return `Text excerpt: "${visibleText.substring(0, 1000)}"\n${actionLine}`;
+  } catch {
+    return undefined;
+  }
 }

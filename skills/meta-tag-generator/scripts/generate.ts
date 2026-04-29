@@ -17,6 +17,8 @@ interface GenerateInput {
   keywords?: string[];
   titleFormat?: { position: "prefix" | "suffix" | "none"; label: string };
   serpResearch?: boolean;
+  pageUrl?: string;
+  pageContent?: string;
 }
 
 export async function run(
@@ -32,6 +34,8 @@ export async function run(
     keywords: input.keywords || [],
     titleFormat: input.titleFormat || { position: "none", label: "" },
     serpResearch: input.serpResearch || false,
+    pageUrl: input.pageUrl,
+    pageContent: input.pageContent,
   };
 
   const result = await generate(userInput, callAI, serpData || null);
@@ -56,7 +60,7 @@ function formatResult(
   for (let i = 0; i < result.versions.length; i++) {
     const v = result.versions[i];
     const badge =
-      v.badge === "green" ? "✓" : v.badge === "yellow" ? "⚠" : "✗";
+      v.badge === "green" ? "✓" : "✗";
     lines.push(`### Version ${i + 1} ${badge}`);
     lines.push(`**Title** (${v.titleLength}/65): ${v.title}`);
     lines.push(

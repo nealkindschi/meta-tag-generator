@@ -159,7 +159,7 @@ export async function generate(
 ): Promise<GenerateResult> {
   const startTime = Date.now();
 
-  const parsePrompt = buildParsePrompt(input.rawInput);
+  const parsePrompt = buildParsePrompt(input.rawInput, input.pageContent);
   const parseResponse = await callAI(parsePrompt);
   const parsed: ParsedInput = safeParseJson<ParsedInput>(parseResponse);
 
@@ -253,9 +253,10 @@ export async function generate(
 
 export function parseRawInput(
   rawInput: string,
-  callAI: CallAI
+  callAI: CallAI,
+  pageContent?: string
 ): Promise<ParsedInput> {
-  const parsePrompt = buildParsePrompt(rawInput);
+  const parsePrompt = buildParsePrompt(rawInput, pageContent);
   return callAI(parsePrompt).then((res) =>
     safeParseJson<ParsedInput>(res)
   );

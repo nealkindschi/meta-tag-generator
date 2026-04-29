@@ -2,6 +2,18 @@ export function InputPanel(): string {
   return `
     <div class="input-panel">
       <div class="form-group">
+        <label for="page-url">Page URL (optional)</label>
+        <input
+          type="url"
+          id="page-url"
+          class="text-input"
+          placeholder="https://example.com/my-page"
+          autocomplete="url"
+        />
+        <p class="help-text" id="page-url-help">The page you're writing meta tags for. We'll scan it for action words and purpose signals.</p>
+      </div>
+
+      <div class="form-group">
         <label for="raw-input">Describe your page</label>
         <textarea
           id="raw-input"

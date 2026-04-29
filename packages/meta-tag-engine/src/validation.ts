@@ -91,7 +91,7 @@ export function validateDescription(
     warnings.push("no call to action detected");
   }
 
-  const variation = checkKeywordVariation("", description, keywords);
+  const variation = checkKeywordVariation("", description, keywords || []);
   if (!variation) {
     warnings.push("duplicate keyword phrases");
   }
