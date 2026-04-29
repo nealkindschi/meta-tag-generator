@@ -80,44 +80,133 @@ function safeParseJson<T>(raw: string): T {
   }
 }
 
-function humanReadableTitle(
-  title: string,
-  format: { position: string; label: string }
-): string {
-  const trimmed = format.label
-    ? title
-        .replace(new RegExp(`^${format.label}\\s*\\|\\s*`, "i"), "")
-        .replace(new RegExp(`\\s*\\|\\s*${format.label}$`, "i"), "")
-        .trim()
-    : title;
-  const formatPrefix = format.position === "prefix" && format.label ? `${format.label} | ` : "";
-  const formatSuffix = format.position === "suffix" && format.label ? ` | ${format.label}` : "";
-  return `${formatPrefix}${trimmed}${formatSuffix}`;
+function stripTrailingFunctionWords(text: string): string {
+  const TRAILING = /\s+(for|with|to|in|on|at|by|from|of|and|or|but|a|an|the|your|our|their|this|that|is|are|be|as|technical|professional|complete|comprehensive|advanced|free|best|better|top|key|main|simple|easy|fast|quick|modern|new)$/i;
+  let result = text.trimEnd();
+  let prev = "";
+  while (result !== prev) {
+    prev = result;
+    const stripped = result.replace(TRAILING, "");
+    if (stripped === result) break;
+    result = stripped;
+  }
+  return result;
 }
 
-function trimToMax(text: string, max: number, isTitle = false): string {
+function trimTitle(text: string, max: number): string {
   if (text.length <= max) return text;
 
-  if (isTitle) {
-    const atBoundary = text.lastIndexOf(" ", max);
-    return atBoundary > 0 ? text.substring(0, atBoundary) : text.substring(0, max);
+  const boundaries = [": ", " - ", " | ", " ? ", " ! "];
+  for (const boundary of boundaries) {
+    const idx = text.lastIndexOf(boundary, max);
+    if (idx > max * 0.4) {
+      return stripTrailingFunctionWords(text.substring(0, idx + boundary.length - 1).trimEnd());
+    }
   }
 
-  const sentenceBoundaries = [". ", "! ", "? ", ".\" ", "!\" ", "?\""];
-  for (const boundary of sentenceBoundaries) {
+  const atWord = text.lastIndexOf(" ", max);
+  if (atWord > 0) {
+    return stripTrailingFunctionWords(text.substring(0, atWord));
+  }
+
+  return text.substring(0, max);
+}
+
+function trimDescription(text: string, max: number): string {
+  if (text.length <= max) return text;
+
+  const sentenceEndings = [". ", "! ", "? "];
+  for (const ending of sentenceEndings) {
+    const idx = text.lastIndexOf(ending, max);
+    if (idx > 0) {
+      return text.substring(0, idx + 1).trimEnd();
+    }
+  }
+
+  const clauseBoundaries = [": ", " - ", " | "];
+  for (const boundary of clauseBoundaries) {
     const idx = text.lastIndexOf(boundary, max);
-    if (idx > max * 0.5) {
-      return text.substring(0, idx + boundary.length - 1).trimEnd();
+    if (idx > max * 0.4) {
+      return stripTrailingFunctionWords(text.substring(0, idx + boundary.length - 1).trimEnd());
     }
   }
 
   const atComma = text.lastIndexOf(", ", max);
-  if (atComma > max * 0.6) {
-    return text.substring(0, atComma).trimEnd();
+  if (atComma > max * 0.4) {
+    return stripTrailingFunctionWords(text.substring(0, atComma).trimEnd());
   }
 
   const atWord = text.lastIndexOf(" ", max);
-  return atWord > 0 ? text.substring(0, atWord).trimEnd() : text.substring(0, max);
+  return atWord > 0 ? stripTrailingFunctionWords(text.substring(0, atWord)) : text.substring(0, max);
+}
+
+function applyTitleCase(text: string): string {
+  if (!text) return text;
+
+  const MINOR_WORDS = new Set([
+    "a", "an", "the",
+    "and", "but", "or", "nor",
+    "for", "on", "at", "to", "by", "from", "of", "in", "with",
+    "as", "is", "it", "be",
+  ]);
+
+  const parts = text.trim().split(/(\s+)/);
+  const wordCount = parts.filter((p) => p.trim() !== "").length;
+
+  let wordIndex = 0;
+  const result = parts.map((part) => {
+    if (part.trim() === "") return part;
+
+    const idx = wordIndex;
+    wordIndex++;
+
+    const trimmed = part.trim();
+    if (trimmed.length >= 2 && trimmed === trimmed.toUpperCase() && /^[A-Z0-9]+$/.test(trimmed)) {
+      return part;
+    }
+
+    if (idx === 0 || idx === wordCount - 1) {
+      return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+    }
+
+    if (MINOR_WORDS.has(trimmed.toLowerCase())) {
+      return part.toLowerCase();
+    }
+
+    return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+  });
+
+  return result.join("");
+}
+
+function formatTitle(rawTitle: string, format: { position: string; label: string }): string {
+  const brandLabel = format.label || "";
+  const position = format.position;
+
+  const trimmed = brandLabel
+    ? rawTitle
+        .replace(new RegExp(`^${escapeRegex(brandLabel)}\\s*\\|\\s*`, "i"), "")
+        .replace(new RegExp(`\\s*\\|\\s*${escapeRegex(brandLabel)}$`, "i"), "")
+        .trim()
+    : rawTitle;
+
+  const titleCased = applyTitleCase(trimmed);
+  const truncated = trimTitle(titleCased, TITLE_MAX);
+
+  let formatted: string;
+  if (position === "prefix" && brandLabel) {
+    formatted = `${brandLabel} | ${truncated}`;
+  } else if (position === "suffix" && brandLabel) {
+    formatted = `${truncated} | ${brandLabel}`;
+  } else {
+    formatted = truncated;
+  }
+
+  return padTitle(formatted);
+}
+
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function padTitle(title: string): string {
@@ -179,8 +268,8 @@ export async function generate(
 
   for (let i = 0; i < rawVersions.length; i++) {
     const raw = rawVersions[i];
-    const formattedTitle = padTitle(trimToMax(humanReadableTitle(raw.title, input.titleFormat), TITLE_MAX, true));
-    const trimmedDesc = padDescription(trimToMax(raw.description, DESCRIPTION_MAX));
+    const formattedTitle = formatTitle(raw.title, input.titleFormat);
+    const trimmedDesc = padDescription(trimDescription(raw.description, DESCRIPTION_MAX));
     const { version, isValid } = buildVersion(formattedTitle, trimmedDesc, input.keywords);
     versions.push(version);
     if (!isValid) {
@@ -210,10 +299,10 @@ export async function generate(
 
       if (!retryRaw) continue;
 
-      const formattedTitle = padTitle(trimToMax(humanReadableTitle(retryRaw.title, input.titleFormat), TITLE_MAX, true));
+      const formattedTitle = formatTitle(retryRaw.title, input.titleFormat);
       const { version, isValid } = buildVersion(
         formattedTitle,
-        padDescription(trimToMax(retryRaw.description, DESCRIPTION_MAX)),
+        padDescription(trimDescription(retryRaw.description, DESCRIPTION_MAX)),
         input.keywords
       );
       versions[originalIdx] = version;

@@ -1,17 +1,18 @@
 import type { GenerateResult, MetaTagVersion, UserInput } from "@seotools/meta-tag-engine";
 
 export function ResultsPanel(result: GenerateResult, lastInput?: UserInput): string {
-  const contextLabel =
-    result.serpContext === "researched" ? "Researched SERP"
-    : result.serpContext === "simulated" ? "Simulated SERP patterns"
-    : "";
+  const serpResearched = result.serpContext !== "none";
 
   const inputSummary = lastInput
     ? `<div class="input-readback">
         <div class="readback-label">Input summary</div>
-        <div class="readback-content">${escapeHtml(lastInput.rawInput)}</div>
-        ${lastInput.keywords.length ? `<div class="readback-meta">Keywords: ${escapeHtml(lastInput.keywords.join(", "))}</div>` : ""}
-        ${lastInput.titleFormat.label ? `<div class="readback-meta">Title format: ${lastInput.titleFormat.position} "${escapeHtml(lastInput.titleFormat.label)}"</div>` : ""}
+        <div class="readback-grid">
+          ${lastInput.pageUrl ? `<div class="readback-row"><span class="readback-key">Page URL</span><span class="readback-value">${escapeHtml(lastInput.pageUrl)}</span></div>` : ""}
+          <div class="readback-row"><span class="readback-key">Description</span><span class="readback-value">${escapeHtml(lastInput.rawInput)}</span></div>
+          ${lastInput.keywords.length ? `<div class="readback-row"><span class="readback-key">Keywords</span><span class="readback-value">${escapeHtml(lastInput.keywords.join(", "))}</span></div>` : ""}
+          ${lastInput.titleFormat.label ? `<div class="readback-row"><span class="readback-key">Title format</span><span class="readback-value">${escapeHtml(lastInput.titleFormat.position)} "${escapeHtml(lastInput.titleFormat.label)}"</span></div>` : ""}
+          <div class="readback-row"><span class="readback-key">Researched SERP</span><span class="readback-value">${serpResearched ? "Yes" : "No"}</span></div>
+        </div>
       </div>`
     : "";
 
@@ -19,7 +20,6 @@ export function ResultsPanel(result: GenerateResult, lastInput?: UserInput): str
     <div class="results-panel" aria-live="polite">
       <div class="results-topbar">
         <button id="back-btn" class="back-btn" aria-label="Back to input">&larr; Back</button>
-        ${contextLabel ? `<span class="context-badge context-${result.serpContext}">${contextLabel}</span>` : ""}
       </div>
 
       ${inputSummary}
@@ -65,8 +65,6 @@ function tableRow(version: MetaTagVersion, index: number): string {
         <div class="cell-value">${escapeHtml(version.description)}</div>
         <div class="cell-meta">
           <span class="char-count ${version.descriptionValid ? "valid" : "invalid"}">${version.descriptionValid ? "&#x2713;" : "&#x2717;"} ${version.descriptionLength}/155</span>
-          ${version.ctaDetected ? '<span class="tag tag-good">CTA</span>' : '<span class="tag tag-bad">No CTA</span>'}
-          ${version.keywordVariation ? '<span class="tag tag-good">Variation</span>' : '<span class="tag tag-bad">Duplicate keywords</span>'}
           ${descIssues > 0 ? `<span class="cell-warnings">${escapeHtml(version.descriptionWarnings.join("; "))}</span>` : ""}
         </div>
         <button class="copy-small" data-copy="${escapeAttr(version.description)}" aria-label="Copy meta description">Copy</button>

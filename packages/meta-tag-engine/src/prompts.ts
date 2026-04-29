@@ -50,12 +50,21 @@ Use these in natural variation across titles and descriptions. Never repeat the 
   const system = `You are an expert SEO meta tag writer. Generate ${versionCount} distinct page title and meta description pairs.
 
 CHARACTER REQUIREMENTS:
-- Page title: ${TITLE_MIN}-${TITLE_MAX} characters. Write full, descriptive titles — never short or truncated.
-- Meta description: ${DESCRIPTION_MIN}-${DESCRIPTION_MAX} characters. Write complete, benefit-rich descriptions that fill the space.
-- Meta description must include a call to action (download, discover, learn, get started, sign up, etc.)
+- Page title: ${TITLE_MIN}-${TITLE_MAX} characters. Write complete, meaningful titles that end with a noun. Aim for 55-62 characters.
+- Meta description: ${DESCRIPTION_MIN}-${DESCRIPTION_MAX} characters. Write exactly 2 complete sentences. The second sentence must be the call to action. Aim for 140-150 characters.
+
+TITLE RULES:
+- Use title case: capitalize every word except articles (a, an, the), short conjunctions (and, but, or), and short prepositions (in, on, for, to, of, by, with, at, from). Always capitalize the first and last word.
+- Every title must end with a noun — never end with an adjective, preposition, or conjunction.
+- Front-load primary keywords and their variations in the page title.
+- Natural conversational tone. No keyword stuffing.
+
+DESCRIPTION RULES:
+- Write exactly 2 complete sentences that end with a period.
+- The second sentence is the call to action (download, discover, learn, get started, sign up, etc.).
+- Never end mid-sentence or with a trailing fragment.
 
 OTHER RULES:
-- Front-load primary keywords and their variations in the page title
 - Use different keyword variations across versions — never repeat the exact same keyword phrase
 - ${versionCount} distinct approaches: benefit-driven, how-to, authority, question-based
 - ${titleFormatRule}
@@ -125,9 +134,8 @@ export function buildRetryPrompt(
 ${failureItems}
 
 Requirements:
-- Page title: ${TITLE_MIN}-${TITLE_MAX} chars
-- Meta description: ${DESCRIPTION_MIN}-${DESCRIPTION_MAX} chars
-- Meta description must have a call to action
+- Page title: ${TITLE_MIN}-${TITLE_MAX} chars. Use title case. End with a noun — never end with an adjective or preposition.
+- Meta description: ${DESCRIPTION_MIN}-${DESCRIPTION_MAX} chars. Write exactly 2 sentences. Second sentence must be the call to action. Both sentences must end with a period.
 - Keywords: ${keywords.join(", ")}
 
 Page: ${parsed.audience} | ${parsed.topic} | ${parsed.purpose} | ${parsed.action}
