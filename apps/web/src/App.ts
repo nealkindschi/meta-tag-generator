@@ -1,4 +1,4 @@
-import type { UserInput, GenerateResult, TitleFormat } from "@seotools/meta-tag-engine";
+import type { UserInput, GenerateResult } from "@seotools/meta-tag-engine";
 import { generateMetaTags } from "./api/client";
 import { InputPanel } from "./components/InputPanel";
 import { ResultsPanel } from "./components/ResultsPanel";
@@ -82,18 +82,12 @@ async function handleGenerate(): Promise<void> {
   const rawInput = (document.getElementById("raw-input") as HTMLTextAreaElement)?.value || "";
   const keywordsStr = (document.getElementById("keywords-input") as HTMLInputElement)?.value || "";
   const serpResearch = (document.getElementById("serp-toggle") as HTMLInputElement)?.checked || false;
-  const formatPos = (document.getElementById("format-position") as HTMLSelectElement)?.value || "none";
-  const formatLabel = (document.getElementById("format-label") as HTMLInputElement)?.value || "";
 
   if (!rawInput.trim()) return;
 
   const input: UserInput = {
     rawInput: rawInput.trim(),
     keywords: keywordsStr.split(",").map((k) => k.trim()).filter(Boolean),
-    titleFormat: {
-      position: formatPos as TitleFormat["position"],
-      label: formatLabel.trim(),
-    },
     serpResearch,
     pageUrl: pageUrl.trim() || undefined,
   };

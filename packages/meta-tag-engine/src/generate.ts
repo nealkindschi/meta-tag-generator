@@ -179,35 +179,6 @@ function applyTitleCase(text: string): string {
   return result.join("");
 }
 
-function formatTitle(rawTitle: string, format: { position: string; label: string }): string {
-  const brandLabel = format.label || "";
-  const position = format.position;
-
-  const trimmed = brandLabel
-    ? rawTitle
-        .replace(new RegExp(`^${escapeRegex(brandLabel)}\\s*\\|\\s*`, "i"), "")
-        .replace(new RegExp(`\\s*\\|\\s*${escapeRegex(brandLabel)}$`, "i"), "")
-        .trim()
-    : rawTitle;
-
-  const titleCased = applyTitleCase(trimmed);
-  const truncated = trimTitle(titleCased, TITLE_MAX);
-
-  let formatted: string;
-  if (position === "prefix" && brandLabel) {
-    formatted = `${brandLabel} | ${truncated}`;
-  } else if (position === "suffix" && brandLabel) {
-    formatted = `${truncated} | ${brandLabel}`;
-  } else {
-    formatted = truncated;
-  }
-
-  return padTitle(formatted);
-}
-
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
 
 function padTitle(title: string): string {
   if (title.length >= TITLE_MIN) return title;
@@ -256,7 +227,6 @@ export async function generate(
     parsed,
     serpData,
     input.keywords,
-    input.titleFormat,
     VERSION_COUNT
   );
 
@@ -268,7 +238,7 @@ export async function generate(
 
   for (let i = 0; i < rawVersions.length; i++) {
     const raw = rawVersions[i];
-    const formattedTitle = formatTitle(raw.title, input.titleFormat);
+    const formattedTitle = padTitle(trimTitle(applyTitleCase(raw.title), TITLE_MAX));
     const trimmedDesc = padDescription(trimDescription(raw.description, DESCRIPTION_MAX));
     const { version, isValid } = buildVersion(formattedTitle, trimmedDesc, input.keywords);
     versions.push(version);
@@ -299,7 +269,7 @@ export async function generate(
 
       if (!retryRaw) continue;
 
-      const formattedTitle = formatTitle(retryRaw.title, input.titleFormat);
+      const formattedTitle = padTitle(trimTitle(applyTitleCase(retryRaw.title), TITLE_MAX));
       const { version, isValid } = buildVersion(
         formattedTitle,
         padDescription(trimDescription(retryRaw.description, DESCRIPTION_MAX)),

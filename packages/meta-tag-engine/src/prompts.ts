@@ -33,7 +33,6 @@ export function buildGeneratePrompt(
   parsed: ParsedInput,
   serpData: SerpResult[] | null,
   keywords: string[],
-  titleFormat: { position: string; label: string },
   versionCount: number = 4
 ): string {
   const serpContext = serpData
@@ -45,39 +44,36 @@ export function buildGeneratePrompt(
 Use these in natural variation across titles and descriptions. Never repeat the same keyword phrase verbatim across versions.`
       : "";
 
-  const titleFormatRule = buildTitleFormatRule(titleFormat);
-
   const system = `You are an expert SEO meta tag writer. Generate ${versionCount} distinct page title and meta description pairs.
-
+ 
 CHARACTER REQUIREMENTS:
 - Page title: ${TITLE_MIN}-${TITLE_MAX} characters. Write complete, meaningful titles that end with a noun. Aim for 55-62 characters.
 - Meta description: ${DESCRIPTION_MIN}-${DESCRIPTION_MAX} characters. Write exactly 2 complete sentences. The second sentence must be the call to action. Aim for 140-150 characters.
-
+ 
 TITLE RULES:
 - Use title case: capitalize every word except articles (a, an, the), short conjunctions (and, but, or), and short prepositions (in, on, for, to, of, by, with, at, from). Always capitalize the first and last word.
 - Every title must end with a noun — never end with an adjective, preposition, or conjunction.
 - Front-load primary keywords and their variations in the page title.
 - Natural conversational tone. No keyword stuffing.
-
+ 
 DESCRIPTION RULES:
 - Write exactly 2 complete sentences that end with a period.
 - The second sentence is the call to action (download, discover, learn, get started, sign up, etc.).
 - Never end mid-sentence or with a trailing fragment.
-
+ 
 OTHER RULES:
 - Use different keyword variations across versions — never repeat the exact same keyword phrase
 - ${versionCount} distinct approaches: benefit-driven, how-to, authority, question-based
-- ${titleFormatRule}
 - Conversational tone, no keyword stuffing
-
+ 
 ${keywordText}
-
+ 
 PAGE CONTEXT:
 - Audience: ${parsed.audience}
 - Topic: ${parsed.topic}
 - Purpose: ${parsed.purpose}
 - Desired Action: ${parsed.action}
-
+ 
 ${serpContext}
 Output ONLY a JSON array with no other text:
 [{"title":"...","description":"..."}]`;
@@ -85,18 +81,6 @@ Output ONLY a JSON array with no other text:
   return system;
 }
 
-function buildTitleFormatRule(format: {
-  position: string;
-  label: string;
-}): string {
-  if (format.position === "none" || !format.label) {
-    return "No brand prefix or suffix on titles.";
-  }
-  if (format.position === "prefix") {
-    return `Prefix all titles with "${format.label} | " (include the pipe and space).`;
-  }
-  return `Suffix all titles with " | ${format.label}" (include the pipe and space).`;
-}
 
 function buildSerpContext(results: SerpResult[]): string {
   const topResults = results.slice(0, 8);

@@ -18,7 +18,6 @@ export {
 } from "./rules";
 export type {
   UserInput,
-  TitleFormat,
   ParsedInput,
   SerpResult,
   SerpContext,

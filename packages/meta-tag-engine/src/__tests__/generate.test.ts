@@ -38,7 +38,6 @@ const baseInput: UserInput = {
   rawInput:
     "A whitepaper about AI lead scoring for marketing directors at B2B SaaS companies. Goal is to get them to download the full guide.",
   keywords: ["AI lead scoring", "B2B SaaS", "predictive scoring"],
-  titleFormat: { position: "none", label: "" },
   serpResearch: false,
 };
 
@@ -51,28 +50,6 @@ describe("generate", () => {
     expect(result.primaryTopic).toBe("AI lead scoring");
     expect(result.serpContext).toBe("none");
     expect(result.computeTime).toBeDefined();
-  });
-
-  it("applies title prefix format", async () => {
-    const { callAI } = createMockAI();
-    const input: UserInput = {
-      ...baseInput,
-      titleFormat: { position: "prefix", label: "theNET" },
-    };
-    const result = await generate(input, callAI, null);
-
-    expect(result.versions[0].title).toMatch(/^theNET \| /);
-  });
-
-  it("applies title suffix format", async () => {
-    const { callAI } = createMockAI();
-    const input: UserInput = {
-      ...baseInput,
-      titleFormat: { position: "suffix", label: "Cloudflare" },
-    };
-    const result = await generate(input, callAI, null);
-
-    expect(result.versions[0].title).toMatch(/ \| Cloudflare$/);
   });
 
   it("sets serpContext to researched when serpData provided", async () => {

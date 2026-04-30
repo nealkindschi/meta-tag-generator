@@ -1,15 +1,9 @@
 export interface UserInput {
   rawInput: string;
   keywords: string[];
-  titleFormat: TitleFormat;
   serpResearch: boolean;
   pageUrl?: string;
   pageContent?: string;
-}
-
-export interface TitleFormat {
-  position: "prefix" | "suffix" | "none";
-  label: string;
 }
 
 export interface ParsedInput {

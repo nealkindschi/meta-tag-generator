@@ -37,26 +37,6 @@ export function InputPanel(): string {
         <p class="help-text">Separate with commas. The AI will use these in natural variation.</p>
       </div>
 
-      <div class="form-row">
-        <div class="form-group form-row-item">
-          <label for="format-position">Title format</label>
-          <select id="format-position" class="select-input">
-            <option value="none">No label</option>
-            <option value="prefix">Prefix</option>
-            <option value="suffix">Suffix</option>
-          </select>
-        </div>
-        <div class="form-group form-row-item">
-          <label for="format-label">Brand / label</label>
-          <input
-            type="text"
-            id="format-label"
-            class="text-input"
-            placeholder="Cloudflare"
-          />
-        </div>
-      </div>
-
       <div class="form-group toggle-group">
         <label class="toggle-label">
           <input type="checkbox" id="serp-toggle" class="toggle-input" />

@@ -28,7 +28,7 @@ describe("buildGeneratePrompt", () => {
   };
 
   it("includes hard character limits", () => {
-    const prompt = buildGeneratePrompt(parsed, null, [], { position: "none", label: "" });
+    const prompt = buildGeneratePrompt(parsed, null, []);
     expect(prompt).toContain("50-65");
     expect(prompt).toContain("140-155");
     expect(prompt).toContain("CHARACTER REQUIREMENTS");
@@ -38,8 +38,7 @@ describe("buildGeneratePrompt", () => {
     const prompt = buildGeneratePrompt(
       parsed,
       null,
-      ["AI lead scoring", "predictive scoring"],
-      { position: "none", label: "" }
+      ["AI lead scoring", "predictive scoring"]
     );
     expect(prompt).toContain("AI lead scoring");
     expect(prompt).toContain("predictive scoring");
@@ -49,41 +48,17 @@ describe("buildGeneratePrompt", () => {
     const prompt = buildGeneratePrompt(
       parsed,
       [{ title: "Example Title", description: "Example desc", url: "https://example.com" }],
-      [],
-      { position: "none", label: "" }
+      []
     );
     expect(prompt).toContain("SERP RESEARCH");
     expect(prompt).toContain("Example Title");
   });
 
-  it("handles prefix title format", () => {
-    const prompt = buildGeneratePrompt(
-      parsed,
-      null,
-      [],
-      { position: "prefix", label: "theNET" }
-    );
-    expect(prompt).toContain('"theNET | "');
-  });
-
-  it("handles suffix title format", () => {
-    const prompt = buildGeneratePrompt(
-      parsed,
-      null,
-      [],
-      { position: "suffix", label: "Cloudflare" }
-    );
-    expect(prompt).toContain('" | Cloudflare"');
-  });
-
-  it("handles no title format", () => {
-    const prompt = buildGeneratePrompt(
-      parsed,
-      null,
-      [],
-      { position: "none", label: "" }
-    );
-    expect(prompt).toContain("No brand prefix or suffix");
+  it("does not include brand format rules", () => {
+    const prompt = buildGeneratePrompt(parsed, null, []);
+    expect(prompt).not.toContain("Prefix all titles with");
+    expect(prompt).not.toContain("Suffix all titles with");
+    expect(prompt).not.toContain("No brand prefix or suffix");
   });
 });
 
