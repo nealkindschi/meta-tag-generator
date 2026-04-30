@@ -10,7 +10,6 @@ export function ResultsPanel(result: GenerateResult, lastInput?: UserInput): str
           ${lastInput.pageUrl ? `<div class="readback-row"><span class="readback-key">Page URL</span><span class="readback-value">${escapeHtml(lastInput.pageUrl)}</span></div>` : ""}
           <div class="readback-row"><span class="readback-key">Description</span><span class="readback-value">${escapeHtml(lastInput.rawInput)}</span></div>
           ${lastInput.keywords.length ? `<div class="readback-row"><span class="readback-key">Keywords</span><span class="readback-value">${escapeHtml(lastInput.keywords.join(", "))}</span></div>` : ""}
-          ${lastInput.titleFormat.label ? `<div class="readback-row"><span class="readback-key">Title format</span><span class="readback-value">${escapeHtml(lastInput.titleFormat.position)} "${escapeHtml(lastInput.titleFormat.label)}"</span></div>` : ""}
           <div class="readback-row"><span class="readback-key">Researched SERP</span><span class="readback-value">${serpResearched ? "Yes" : "No"}</span></div>
         </div>
       </div>`
